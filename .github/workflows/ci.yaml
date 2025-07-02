@@ -1,3 +1,4 @@
+---
 name: CI Pipeline
 
 on:
@@ -24,7 +25,7 @@ jobs:
 
       - name: Tester l'application via curl
         run: |
-          sleep 10  # Augmentation du délai pour être sûr que l'app est prête
+          sleep 10
           curl -sSf http://localhost:8000 || echo "Test failed"
 
       - name: Arrêter le conteneur
@@ -54,28 +55,43 @@ jobs:
       - name: Installer Trivy
         run: |
           sudo apt-get install -y wget apt-transport-https gnupg lsb-release
-          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key \
+            | sudo apt-key add -
+          echo "deb https://aquasecurity.github.io/trivy-repo/deb \
+            $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
           sudo apt-get update
           sudo apt-get install -y trivy
 
-      - name: Scan des dépendances (si requirements.txt présent)
+      - name: Scan des dépendances
         if: ${{ hashFiles('**/requirements.txt') != '' }}
         run: |
-          trivy fs --security-checks vuln --severity HIGH,CRITICAL --exit-code 0 --format table --ignore-unfixed .
+          trivy fs --security-checks vuln \
+            --severity HIGH,CRITICAL \
+            --exit-code 0 \
+            --format table \
+            --ignore-unfixed .
 
-      - name: Scan de l'image Docker avec Trivy
+      - name: Scan de l'image Docker
         run: |
-          trivy image --security-checks vuln --severity HIGH,CRITICAL --exit-code 0 --format table --ignore-unfixed ngueyepmodeste/jennapp:v2
+          trivy image --security-checks vuln \
+            --severity HIGH,CRITICAL \
+            --exit-code 0 \
+            --format table \
+            --ignore-unfixed ngueyepmodeste/jennapp:v2
 
-      - name: Générer rapport JSON - Trivy image
+      - name: Générer rapport JSON image
         run: |
-          trivy image --security-checks vuln --format json --output trivy-image-report.json ngueyepmodeste/jennapp:v2
+          trivy image --security-checks vuln \
+            --format json \
+            --output trivy-image-report.json \
+            ngueyepmodeste/jennapp:v2
 
-      - name: Générer rapport JSON - Trivy dépendances (si présent)
+      - name: Générer rapport JSON dépendances
         if: ${{ hashFiles('**/requirements.txt') != '' }}
         run: |
-          trivy fs --security-checks vuln --format json --output trivy-deps-report.json .
+          trivy fs --security-checks vuln \
+            --format json \
+            --output trivy-deps-report.json .
 
       - name: Upload rapports Trivy
         uses: actions/upload-artifact@v4
