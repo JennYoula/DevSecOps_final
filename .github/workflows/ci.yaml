@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build Docker image
-        run: docker build -t flask-k8-example .
+        run: docker pull ngueyepmodeste/jennapp:v2
 
       - name: Lint Dockerfile (optionnel)
         uses: hadolint/hadolint-action@v3.1.0
