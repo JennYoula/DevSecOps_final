@@ -17,6 +17,14 @@ jobs:
       - name: Build Docker image
         run: docker pull ngueyepmodeste/jennapp:v2
 
+      - name: Lancer le conteneur Docker
+        run: docker run -itd --name jenn -p 8000:5000 ngueyepmodeste/jennapp:v2
+
+      - name: Tester l’application via curl
+        run: |
+          sleep 5  # attend que le conteneur démarre
+          curl localhost:8000
+
       - name: Lint Dockerfile (optionnel)
         uses: hadolint/hadolint-action@v3.1.0
         with:
@@ -27,3 +35,4 @@ jobs:
 
       - name: Lint fichiers YAML
         run: yamllint .github/workflows/ci.yaml
+
