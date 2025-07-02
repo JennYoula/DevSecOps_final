@@ -35,3 +35,18 @@ jobs:
 
       - name: Lint fichiers YAML
         run: yamllint .github/workflows/ci.yaml
+
+      - name: Installer Trivy
+        run: |
+          sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install -y trivy
+
+      - name: Scan des dépendances (si requirements.txt présent)
+        if: ${{ hashFiles('**/requirements.txt') != '' }}
+        run: trivy fs --severity HIGH,CRITICAL --exit-code 0 --format table --ignore-unfixed .
+
+      - name: Scan de l’image Docker avec Trivy
+        run: trivy image --severity HIGH,CRITICAL --exit-code 0 --format table --ignore-unfixed ngueyepmodeste/jennapp:v2
