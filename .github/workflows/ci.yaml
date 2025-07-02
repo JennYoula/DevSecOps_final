@@ -3,9 +3,9 @@ name: CI Pipeline
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
   pull_request:
-    branches: ["main"]
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -54,18 +54,24 @@ jobs:
 
       - name: Installer Trivy
         run: |
-          sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+          sudo apt-get install -y \
+            wget \
+            apt-transport-https \
+            gnupg \
+            lsb-release
           wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key \
             | sudo apt-key add -
           echo "deb https://aquasecurity.github.io/trivy-repo/deb \
-            $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
+            $(lsb_release -sc) main" \
+            | sudo tee /etc/apt/sources.list.d/trivy.list
           sudo apt-get update
           sudo apt-get install -y trivy
 
       - name: Scan des dépendances
         if: ${{ hashFiles('**/requirements.txt') != '' }}
         run: |
-          trivy fs --security-checks vuln \
+          trivy fs \
+            --security-checks vuln \
             --severity HIGH,CRITICAL \
             --exit-code 0 \
             --format table \
@@ -73,7 +79,8 @@ jobs:
 
       - name: Scan de l'image Docker
         run: |
-          trivy image --security-checks vuln \
+          trivy image \
+            --security-checks vuln \
             --severity HIGH,CRITICAL \
             --exit-code 0 \
             --format table \
@@ -81,7 +88,8 @@ jobs:
 
       - name: Générer rapport JSON image
         run: |
-          trivy image --security-checks vuln \
+          trivy image \
+            --security-checks vuln \
             --format json \
             --output trivy-image-report.json \
             ngueyepmodeste/jennapp:v2
@@ -89,7 +97,8 @@ jobs:
       - name: Générer rapport JSON dépendances
         if: ${{ hashFiles('**/requirements.txt') != '' }}
         run: |
-          trivy fs --security-checks vuln \
+          trivy fs \
+            --security-checks vuln \
             --format json \
             --output trivy-deps-report.json .
 
