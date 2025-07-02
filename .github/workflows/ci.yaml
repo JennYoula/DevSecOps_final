@@ -49,7 +49,26 @@ jobs:
 
       - name: Scan des dépendances (si requirements.txt présent)
         if: ${{ hashFiles('**/requirements.txt') != '' }}
-        run: trivy fs --severity HIGH,CRITICAL --exit-code 0 --format table --ignore-unfixed .
+        run: |
+          trivy fs --severity HIGH,CRITICAL --exit-code 0 --format table --ignore-unfixed .
 
       - name: Scan de l’image Docker avec Trivy
-        run: trivy image --severity HIGH,CRITICAL --exit-code 0 --format table --ignore-unfixed ngueyepmodeste/jennapp:v2
+        run: |
+          trivy image --severity HIGH,CRITICAL --exit-code 0 --format table --ignore-unfixed ngueyepmodeste/jennapp:v2
+
+      - name: Générer rapport JSON - Trivy image
+        run: |
+          trivy image --format json --output trivy-image-report.json ngueyepmodeste/jennapp:v2
+
+      - name: Générer rapport JSON - Trivy dépendances (si présent)
+        if: ${{ hashFiles('**/requirements.txt') != '' }}
+        run: |
+          trivy fs --format json --output trivy-deps-report.json .
+
+      - name: Upload rapports Trivy
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapports-trivy
+          path: |
+            trivy-image-report.json
+            trivy-deps-report.json
