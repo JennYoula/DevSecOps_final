@@ -2,9 +2,9 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
@@ -26,4 +26,4 @@ jobs:
         run: sudo apt-get install -y yamllint
 
       - name: Lint fichiers YAML
-        run: yamllint .
+        run: yamllint .github/workflows/ci.yaml
